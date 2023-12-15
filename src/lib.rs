@@ -1,2 +1,2 @@
-mod unicase_btree_map;
-mod unicase_btreeset;
+pub mod unicase_btree_map;
+pub mod unicase_btree_set;
