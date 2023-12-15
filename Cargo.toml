@@ -4,6 +4,7 @@ description   = "Collection of UniCase datastructures"
 name = "unicase_collections"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 repository    = "https://github.com/Havunen/unicase_collections.git"
 
 [dependencies]
