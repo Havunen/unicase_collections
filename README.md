@@ -6,3 +6,5 @@ as keys for the collection types providing case-insensitive lookups.
 Currently supported collections:
 - BTreeMap
 - BTreeSet
+- IndexMap
+- IndexSet

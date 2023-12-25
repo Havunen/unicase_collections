@@ -1,4 +1,4 @@
-use criterion::{black_box, Criterion, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use unicase::UniCase;
 use unicase_collections::unicase_btree_map::UniCaseBTreeMap;
 
@@ -8,16 +8,23 @@ fn unicase_btree_map_benchmark(c: &mut Criterion) {
         map.insert(UniCase::new(i.to_string()), i);
     }
 
-    c.bench_function("UniCaseBTreeMap insert", |b| {
+    c.bench_function("UniCaseBTreeMap get str", |b| {
         b.iter(|| {
-            let mut map = UniCaseBTreeMap::new();
-            for i in 0..1000 {
-                map.insert(black_box(UniCase::new(i.to_string())), black_box(i));
+            for _i in 0..1000 {
+                let _ = map.get(black_box("dffd"));
             }
         })
     });
 
-    c.bench_function("UniCaseBTreeMap get", |b| {
+    c.bench_function("UniCaseBTreeMap get String", |b| {
+        b.iter(|| {
+            for i in 0..1000 {
+                let _ = map.get(black_box(i.to_string()));
+            }
+        })
+    });
+
+    c.bench_function("UniCaseBTreeMap get new UniCase", |b| {
         b.iter(|| {
             for i in 0..1000 {
                 let _ = map.get(black_box(UniCase::new(i.to_string())));
@@ -25,10 +32,10 @@ fn unicase_btree_map_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("UniCaseBTreeMap contains_key", |b| {
+    c.bench_function("UniCaseBTreeMap get &UniCase", |b| {
         b.iter(|| {
             for i in 0..1000 {
-                let _ = map.contains_key(black_box(UniCase::new(i.to_string())));
+                let _ = map.get(black_box(&UniCase::new(i.to_string())));
             }
         })
     });

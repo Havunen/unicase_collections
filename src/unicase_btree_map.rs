@@ -1,10 +1,8 @@
+use crate::key::{Key, ToKey};
 use std::collections::btree_map::{Entry, IntoIter, Iter, IterMut, Keys, Values, ValuesMut};
 use std::collections::BTreeMap;
 use std::iter::FromIterator;
 use std::ops::Index;
-use unicase::UniCase;
-
-type Key = UniCase<String>;
 
 #[derive(Debug, Default, Clone)]
 pub struct UniCaseBTreeMap<V> {
@@ -29,30 +27,30 @@ where
 
 impl<K, V> Extend<(K, V)> for UniCaseBTreeMap<V>
 where
-    K: Into<Key>,
+    K: ToKey,
 {
     fn extend<T: IntoIterator<Item = (K, V)>>(&mut self, iter: T) {
         // Transform the keys into UniCases.
-        let iter = iter.into_iter().map(|(k, v)| (k.into(), v));
+        let iter = iter.into_iter().map(|(k, v)| (k.to_key(), v));
         self.inner.extend(iter);
     }
 }
 
 impl<'a, K, V> Extend<(K, &'a V)> for UniCaseBTreeMap<V>
 where
-    K: Into<Key>,
+    K: ToKey,
     V: Copy,
 {
     fn extend<T: IntoIterator<Item = (K, &'a V)>>(&mut self, iter: T) {
         // Transform the keys into UniCases and copy the values.
-        let iter = iter.into_iter().map(|(k, v)| (k.into(), *v));
+        let iter = iter.into_iter().map(|(k, v)| (k.to_key(), *v));
         self.inner.extend(iter);
     }
 }
 
 impl<K, V> FromIterator<(K, V)> for UniCaseBTreeMap<V>
 where
-    K: Into<Key>,
+    K: ToKey,
 {
     fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
         let mut map = Self::new();
@@ -90,12 +88,12 @@ impl<V> IntoIterator for UniCaseBTreeMap<V> {
 
 impl<'a, K, V> Index<K> for UniCaseBTreeMap<V>
 where
-    K: Into<Key>,
+    K: ToKey,
 {
     type Output = V;
 
     fn index(&self, index: K) -> &Self::Output {
-        let key = index.into();
+        let key = index.to_key();
         self.inner.index(&key)
     }
 }
@@ -118,35 +116,34 @@ impl<V> UniCaseBTreeMap<V> {
 
     /// Returns true if the map contains a value for the specified key.
     /// The key may be a String, str or UniCase value.
-    pub fn contains_key<K: Into<Key>>(&self, k: K) -> bool {
-        let key = k.into();
+    pub fn contains_key<K: ToKey>(&self, k: K) -> bool {
+        let key = k.to_key();
         self.inner.contains_key(&key)
     }
 
     /// Gets the given key's corresponding entry in the map for in-place manipulation.
-    pub fn entry<K: Into<Key>>(&mut self, k: K) -> Entry<'_, Key, V> {
-        let key = k.into();
+    pub fn entry<K: ToKey>(&mut self, k: K) -> Entry<'_, Key, V> {
+        let key = k.to_key();
         self.inner.entry(key)
     }
 
     /// Returns a reference to the value corresponding to the key.
-    /// The key may be a String, str or UniCase value.
-    pub fn get<K: Into<Key>>(&self, k: K) -> Option<&V> {
-        let key = k.into();
+    pub fn get<K: ToKey>(&self, k: K) -> Option<&V> {
+        let key = k.to_key();
         self.inner.get(&key)
     }
 
     /// Returns the key-value pair corresponding to the supplied key.
     /// The key may be a String, str or UniCase value.
-    pub fn get_key_value<K: Into<Key>>(&self, k: K) -> Option<(&Key, &V)> {
-        let key = k.into();
+    pub fn get_key_value<K: ToKey>(&self, k: K) -> Option<(&Key, &V)> {
+        let key = k.to_key();
         self.inner.get_key_value(&key)
     }
 
     /// Returns a mutable reference to the value corresponding to the key.
     /// The key may be a String, str or UniCase value.
-    pub fn get_mut<K: Into<Key>>(&mut self, k: K) -> Option<&mut V> {
-        let key = k.into();
+    pub fn get_mut<K: ToKey>(&mut self, k: K) -> Option<&mut V> {
+        let key = k.to_key();
         self.inner.get_mut(&key)
     }
 
@@ -156,8 +153,8 @@ impl<V> UniCaseBTreeMap<V> {
     /// The key is not updated, though; this matters for types that can be == without being identical.
     /// See the module-level documentation of [BTreeMap](https://doc.rust-lang.org/std/collections/index.html#insert-and-complex-keys)
     // for more.
-    pub fn insert<K: Into<Key>>(&mut self, k: K, v: V) -> Option<V> {
-        let key = k.into();
+    pub fn insert<K: ToKey>(&mut self, k: K, v: V) -> Option<V> {
+        let key = k.to_key();
         self.inner.insert(key, v)
     }
 
@@ -191,15 +188,15 @@ impl<V> UniCaseBTreeMap<V> {
 
     /// Removes a key from the map, returning the value at the key if the key was previously in the map.
     /// The key may be a String, str or UniCase value.
-    pub fn remove<K: Into<Key>>(&mut self, k: K) -> Option<V> {
-        let key = k.into();
+    pub fn remove<K: ToKey>(&mut self, k: K) -> Option<V> {
+        let key = k.to_key();
         self.inner.remove(&key)
     }
 
     /// Removes a key from the map, returning the stored key and value if the key was previously in the map.
     /// The key may be a String, str or UniCase value.
-    pub fn remove_entry<K: Into<Key>>(&mut self, k: K) -> Option<(Key, V)> {
-        let key = k.into();
+    pub fn remove_entry<K: ToKey>(&mut self, k: K) -> Option<(Key, V)> {
+        let key = k.to_key();
         self.inner.remove_entry(&key)
     }
 
@@ -299,6 +296,15 @@ mod tests {
         // Won't work with plain &str, which is annoying.
         let uc = UniCase::new("a".to_string());
         assert_eq!(map.get(uc).unwrap(), &1);
+    }
+
+    #[test]
+    fn get_unicase_ref() {
+        let mut map = UniCaseBTreeMap::<u8>::new();
+        map.insert("A", 1);
+        // Won't work with plain &str, which is annoying.
+        let uc = UniCase::new("a".to_string());
+        assert_eq!(map.get(&uc).unwrap(), &1);
     }
 
     #[test]
