@@ -22,9 +22,8 @@ where
             return false;
         }
 
-        // TODO: Get rid of this clone.
         self.iter()
-            .all(|(key, value)| other.get(key.clone()).map_or(false, |v| *value == *v))
+            .all(|(key, value)| other.get(&***key).map_or(false, |v| *value == *v))
     }
 }
 

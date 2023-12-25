@@ -2,7 +2,7 @@
 authors       = ["Havunen <sampo.kivisto@live.fi>"]
 description   = "Collection of UniCase datastructures"
 name = "unicase_collections"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 license = "MIT"
 repository    = "https://github.com/Havunen/unicase_collections.git"
